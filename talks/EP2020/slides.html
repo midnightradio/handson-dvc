@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>DVC - Automating ML workflow</title>
+
+		<meta name="description" content="EuroPython 2020 session">
+		<meta name="author" content="Hongjoo LEE">
+
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<link rel="stylesheet" href="../reveal.js/dist/reset.css">
+		<link rel="stylesheet" href="../reveal.js/dist/reveal.css">
+		<link rel="stylesheet" href="../reveal.js/dist/theme/hjlee.css" id="theme">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="../reveal.js/plugin/highlight/monokai.css" id="highlight-theme">
+		<!-- https://stackoverflow.com/questions/30861845/how-to-use-two-column-layout-with-reveal-js -->
+		<style>
+				.twocolumn {
+				   display: grid;
+				   grid-template-columns: 1fr 1fr;
+				   grid-gap: 10px;
+				   text-align: left;
+				}
+
+				span.nobreak {
+					/*overflow: hidden;
+					text-overflow: ellipsis;*/
+					white-space: nowrap;
+				}
+		</style>
+
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+				<section>
+					<h4>Automating</h4>
+					<h3>Machine Learning Workflow</h3>
+					<h2><span style="text-transform: lowercase;">with</span> DVC</h2>
+					<p>
+						<a href="https://linkedin.com/in/hongjoo-lee/">Hongjoo LEE</a>
+					</p>
+					<a href="https://ep2020.europython.eu">
+							<img src="https://ep2020.europython.eu/static/img/ep2020-online-logo.png" alt="EP2020 logo" style="height: 150px; margin: auto auto 0 auto; background: transparent;" class="r-stretch"> <!--class="demo-logo"-->
+					</a>
+				</section>
+
+				<section>
+					<h2>About Me</h2>
+					<div class="twocolumn">
+					<div> <!-- style="text-align: left"-->
+							<h3>Machine Learning Engineer @</h3>
+								SK Hynix</br>
+								Data Science
+					</div>
+					<div style="text-align: right">
+							<h3>Recent Work Interest</h3>	
+							Knowledge Graph</br>
+							<span class="nobreak">Supply Chain Management</br>
+									Mining Software Repository</span>
+					</div>
+					</div>
+				</section>
+
+				<section>
+					<h2>Agenda</h2>
+					<ol>
+						<li>Software Developers vs ML Developers</li>
+						<li>ML Workflow and DVC</li>
+						<li>Walkthrough example (Cats vs Dogs)</li>
+					</ol>
+				</section>
+				
+				<section>
+					<h2>Waterfall to Agile</h2>
+					<img style="height: 500px; margin: auto auto 0 auto; background: transparent;" data-src="images/waterfall.png"/>
+				</section>
+
+				<section>
+					<h2>Software Dev. LifeCycle</h2>
+					<div>
+					<img style="height: 250px; margin: auto auto 0 auto; background: transparent;" data-src="images/devops.png"/>
+					</div>
+					<div class="twocolumn">
+							<div style="text-align: right" class="fragment"> 
+							<ul>
+							<li>code : git</li>
+							<li>build : sbt, maven</li>
+							<li>test : jUnit</li>
+							<li>release : Jenkins</li>
+							</ul>
+							</div>
+							<div style="text-align: left" class="fragment">
+							<ul>
+							<li>deploy : docker, AWS</li>
+							<li>operate : Kubernetes</li>
+							<li>monitor : ELK stack</li>
+							</ul>
+							</div>
+					</div>
+
+				</section>
+
+				<section>
+					<h2>Machine Learning Dev. LifeCycle</h2>
+					<div>
+					<img style="height: 250px; margin: auto auto 0 auto; background: transparent;" data-src="images/mlops.png"/>
+					</div>
+					<ol>
+					<li class="fragment">Data Acquisition</li>
+					<li class="fragment">Data Preprocessing</li>
+					<li class="fragment">Build Model</li>
+					<li class="fragment">Evaluation & Model Selection</li>
+					<li class="fragment">Deployment</li>
+					</ol>
+				</section>
+
+				<section>
+					<h2>Machine Learning Workflow</h2>
+					<img style="height: 400px; margin: auto auto 0 auto; background: transparent;" data-src="images/workflow.png"/>
+				</section>
+
+				<section>
+					<h2>Challenging issues in ML workflow</h2>
+					<p>Machine Learning is not Software Engineering</p>
+					<ul>
+							<li class="fragment">Versioning data along with code</li>
+							<li class="fragment">Deploy a Model (not a code)</li>
+							<li class="fragment">Metric Driven Deployment</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Versioning data along with code</h2>
+							<pre><code data-trim contenteditable style="font-size: 18px;">
+								$ tree data
+								data
+								├── raw_data.csv
+								├── cleaned_data.csv
+								├── cleaned_data_final.csv
+								├── cleaned_data_preprocessed_final.csv
+								└── cleaned_data_preprocessed_final.csv.bak
+							</code></pre>
+					<ul>
+							<li class="fragment">Data version hell</li>
+							<li class="fragment">Data shared for team sports</li>
+							<li class="fragment">Data triggers a pipeline (AWA Code) </li>
+							<li class="fragment">ML model must be versioned and tracked</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Metric Driven Development</h2>
+					<ul>
+							<li class="fragment">Developing software matters features</li>
+							<li class="fragment">Developing Machine Learning matters metrics</li>
+							<li class="fragment">Metrics must be tracked</li>
+					</ul>
+				</section>
+
+				<section>
+						<p style="text-align: left" >DVC helps to handle these challenges.</p>
+
+							<p/>
+							<div style="text-align: left"> 
+									<scan class="fragment">There are other solutions, such as...</span>
+							<ul>
+									<li class="fragment"><a href="https://git-lfs.github.com/">git-LFS</a></li>
+									<li class="fragment"><a href="https://mlflow.org/">MLflow</a></li>
+									<li class="fragment"><a href="https://airflow.apache.org/">Apache Airflow</a></li>
+							</ul>
+							</div>
+							<p/>
+							<div style="text-align: left" >
+									<span class="fragment">I recommend DVC because...</span>
+							<ul>
+									<li class="fragment">Easy to use</li>
+									<li class="fragment">Language independent</li>
+									<li class="fragment">Useful to an individual to a large team</li>
+							</ul>
+							</div>
+				</section>
+			
+				<section>
+						<h2>Cats vs Dogs Classification</h2>
+						<p>The example project (<a href="https://github.com/midnightradio/handson-dvc">github.com/midnightradio/handson-dvc</a>) trains a small VGGNet to classify cat and dog images.</p>
+						<p>Follow the instruction in the repository to build a docker image and containerize the image with running bash shell. Following commands should be run inside the docker container</p>
+				</section>
+
+				<section>
+						<h3>project structure</h3>
+						<pre><code class="bash" data-trim>
+$ cd cats_and_dogs
+$ tree
+.
+├── data
+│   ├── finalized
+│   ├── processed
+│   └── raw
+├── environment.sh
+├── notebooks
+├── requirements.txt
+├── scripts
+│   ├── dataload.sh
+│   └── deploy.sh
+└── src
+    ├── catdog
+    └── setup.py
+
+
+						</code></pre>
+				</section>
+
+				<section>
+						<h3>Initialize repository</h3>
+						<pre><code class="bash" data-trim>
+$ git init
+$ git add src
+$ git commit -m 'initialize repository'
+$ dvc init
+$ git status
+        new file:   .dvc/.gitignore
+        new file:   .dvc/config
+        new file:   .dvc/plots/confusion.json
+        new file:   .dvc/plots/default.json
+        new file:   .dvc/plots/scatter.json
+        new file:   .dvc/plots/smooth.json
+$ git add .dvc
+$ git commit -m 'initialize dvc'
+
+						</code></pre>
+				</section>
+
+				<section>
+						<h3>Download data</h3>
+						<p>It's pretty large dataset containing 25K images in total, half cats and half dogs.</p>
+						<pre><code class="bash" data-trim>
+$ scripts/dataload.sh
+$ ls /tmp/PetImages
+Cat  Dog
+						</code></pre>
+				</section>
+
+				<section>
+						<h3>Setup parameters</h3>
+						<pre><code class="bash" data-trim>
+$ cat << EOF > params.yaml
+> data:
+>   raw: "/tmp/PetImages"
+>   processed: "data/processed"
+>
+> prep:
+>   split_rate: 0.9 
+>   class_size: 2000
+>
+> train:
+>   learning_rate: 0.001
+>   batch_size: 100 
+>   epochs: 15
+>   validation_rate: 0.2
+> EOF
+$ git add params.yaml
+$ git commit -m "add parameters"
+						</code></pre>
+						<aside class='notes'>
+						<p>params.yaml : default filename for parameters tracked by DVC. We can define some hyperparamters or other ML configurations seprate from source code.</p>
+						<p>split_rate : train / test data sepration ratio. test data is used for evaluation after validation step.</p>
+						<p>class_size : training a model with entire dataset takes a long time and we sample just 2K for each class for train / validation dataset.</p>
+						</aside>
+				</section>
+
+				<section>
+						<h3>Define data prepare stage</h3>
+						<pre><code class="bash" data-trim>
+$ dvc run -n prep -p prep -d src/catdog/preprocess.py \
+	-o data/processed python -m catdog.preprocess
+$ git status
+        data/
+        dvc.lock
+        dvc.yaml
+$ cat data/.gitignore
+/processed
+$ git add dvc.yaml dvc.lock data
+$ git commit -m "define prep stage"
+						</code></pre>
+				</section>
+
+
+				<section data-auto-animate>
+						<h3>Define train / evaluate  stage (ver. 0.1)</h3>
+						<p>Train and evaluate first VGGNet with One Convolutional layer and One Fully Connected layer</p>
+						<pre data-id="code-animation"><code class="bash" data-trim data-line-numbers>
+$ dvc run -n train -p train -d data/processed/ \
+	-d src/catdog/train.py -o data/model.h5 --plots-no-cache \
+	data/plot.json python -m catdog.train
+......
+$ dvc run -n evaluate -d data/model.h5 -d src/catdog/evaluate.py \
+	-m data/score.json python -m catdog.evaluate
+......
+$ git status
+        modified:   data/.gitignore
+        modified:   dvc.lock
+        modified:   dvc.yaml
+        modified:   src/catdog/train.py
+$ cat data/.gitignore
+/processed
+/model.h5
+/score.json
+$ git add data/ dvc.lock dvc.yaml src/catdog/train.py
+$ git commit -m '1 Conv, 1 FC'
+$ git tag -a 0.1 -m "ver 0.1, 1 Conv, 1 FC"
+						</code></pre>
+				</section>
+
+				<section>
+						<h3>Pipeline Dependency of defined stages</h3>
+						<pre><code class="bash" data-trim>
+$ dvc dag
+  +------+
+  | prep |
+  +------+
+      *
+      *
+      *
+  +-------+
+  | train |
+  +-------+
+      *
+      *
+      *
++----------+
+| evaluate |
++----------+
+
+						</code></pre>
+				</section>
+
+				<section>
+						<h3>Reproducing Experiment</h3>
+						<p>`dvc repro` checks any changes in dependencies and automatically runs the pipeline from the first stage where a change happened</p>
+						<pre><code class="bash" data-trim>
+$ dvc repro
+Stage 'prep' didn't change, skipping
+Stage 'train' didn't change, skipping
+Stage 'evaluate' didn't change, skipping
+Data and pipelines are up to date.
+						</code></pre>
+				</section>
+
+				<section>
+						<h3>Reproducing Experiment (ver. 0.2)</h3>
+						<p>Add another Convolutional layer and reproduce affected stages</p>
+						<pre><code class="python" data-trim data-line-numbers="4,5">
+model = keras.Sequential([
+	layers.Conv2D(16, (3, 3), activation='relu', input_shape=(224, 224, 3)),
+	layers.MaxPooling2D(2, 2),
+	layers.Conv2D(32, (3, 3), activation='relu'),
+	layers.MaxPooling2D(2, 2),
+	layers.Flatten(),
+	layers.Dense(512, activation='relu'),
+	layers.Dense(1, activation='sigmoid')
+])
+						</code></pre>
+				</section>
+
+
+				<section>
+						<h3>Reproducing Experiment (ver. 0.2)</h3>
+						<p>Add another Convolutional layer and reproduce affected stages</p>
+						<pre><code class="bash" data-trim>
+$ dvc repro
+......
+$ git add data dvc.lock src/catdog/train.py
+$ git commit -m '2 Conv, 1 FC'
+$ git tag -a 0.2 -m "ver. 0.2 , 2Conv, 1FC"
+						</code></pre>
+				</section>
+
+				<section>
+						<h3>Reproducing Experiment (ver. 0.3)</h3>
+						<p>Add third Convolutional layer and reproduce affected stages</p>
+						<pre><code class="python" data-trim data-line-numbers="6,7">
+model = keras.Sequential([
+	layers.Conv2D(16, (3, 3), activation='relu', input_shape=(224, 224, 3)),
+	layers.MaxPooling2D(2, 2),
+	layers.Conv2D(32, (3, 3), activation='relu'),
+	layers.MaxPooling2D(2, 2),
+	layers.Conv2D(64, (3, 3), activation='relu'),
+	layers.MaxPooling2D(2, 2),
+	layers.Flatten(),
+	layers.Dense(512, activation='relu'),
+	layers.Dense(1, activation='sigmoid')
+])
+						</code></pre>
+				</section>
+
+
+				<section>
+						<h3>Reproducing Experiment (ver. 0.3)</h3>
+						<p>Add third Convolutional layer and reproduce affected stages</p>
+						<pre><code class="bash" data-trim>
+$ dvc repro
+......
+$ git add data dvc.lock src/catdog/train.py
+$ git commit -m '3 Conv, 1 FC'
+$ git tag -a 0.3 -m "ver. 0.3 , 3Conv, 1FC"
+						</code></pre>
+				</section>
+
+				<section>
+						<h3>Compare metrics for each version</h3>
+						<p>Regarding to the accuracy, just adding Conv layers seems not helping the result.</p>
+						<pre><code class="bash" data-trim>
+$ dvc metrics show -T
+workspace:
+        data/score.json:
+                acc: 0.675000011920929
+0.1:
+        data/score.json:
+                acc: 0.6924999952316284
+0.2:
+        data/score.json:
+                acc: 0.7124999761581421
+0.3:
+        data/score.json:
+                acc: 0.675000011920929
+						</code></pre>
+				</section>
+
+				<section>
+						<h3>Metric Driven Development</h3>
+						<p>The training process for each experiment tell something</p>
+						<table> <!--style="margin: auto; text-align: center;"-->
+								<thead>
+								<tr>
+										<th></th>
+										<th style="margin: auto; text-align: center;">v0.1</th>
+										<th style="margin: auto; text-align: center;">v0.2</th>
+										<th style="margin: auto; text-align: center;">v0.3</th>
+								</tr>
+								</thead>
+								<tbody>
+								<tr>
+										<th style="margin: auto; text-align: middle;">ACC</td>
+										<td>
+						<img style="height: 150px; margin: auto auto 0 auto; background: transparent;" data-src="images/v1.acc.png"/> 
+										</td>
+										<td>
+						<img style="height: 150px; margin: auto auto 0 auto; background: transparent;" data-src="images/v2.acc.png"/> 
+										</td>
+										<td>
+						<img style="height: 150px; margin: auto auto 0 auto; background: transparent;" data-src="images/v3.acc.png"/> 
+										</td>
+								</tr>
+								<tr>
+										<th style="text-align: middle;">Val. ACC</td>
+										<td>
+						<img style="height: 150px; margin: auto auto 0 auto; background: transparent;" data-src="images/v1.val_acc.png"/>
+										</td>
+										<td>
+						<img style="height: 150px; margin: auto auto 0 auto; background: transparent;" data-src="images/v2.val_acc.png"/>
+										</td>
+										<td>
+						<img style="height: 150px; margin: auto auto 0 auto; background: transparent;" data-src="images/v3.val_acc.png"/>
+										</td>
+								</tr>
+
+								</tbody>
+						</table>
+
+						<aside class='notes'>
+								<p>validation accuracy suddenly starts to drop or not increasing while training accuracy increasing constantly.</p>
+						</aside>
+				</section>
+
+				<section>
+						<h3>Metric Driven Development (Overfitting)</h3>
+						<p>Clear sign of overfitting --> Regularization</p>
+						<pre><code class="python" data-trim data-line-numbers="10">
+model = keras.Sequential([
+	layers.Conv2D(16, (3, 3), activation='relu', input_shape=(224, 224, 3)),
+	layers.MaxPooling2D(2, 2),
+	layers.Conv2D(32, (3, 3), activation='relu'),
+	layers.MaxPooling2D(2, 2),
+	layers.Conv2D(64, (3, 3), activation='relu'),
+	layers.MaxPooling2D(2, 2),
+	layers.Flatten(),
+	layers.Dense(512, activation='relu'),
+	layers.Dropout(0.5),
+	layers.Dense(1, activation='sigmoid')
+])
+						</code></pre>
+				</section>
+
+				<section>
+						<h3>Metric Driven Development (Dropout)</h3>
+						<pre><code class="bash" data-trim>
+$ dvc repro
+$ git add dvc.lock src/catdog/train.py data/plot.json 
+$ git commit -m '3 Conv, 1 FC, Dropout added'
+$ tag -a 0.4 -m "ver. 0.4, 3Conv, 1FC, Dropout(0.5)"
+						</code></pre>
+						<div>
+						<img style="height: 200px; margin: auto auto 0 auto; background: transparent;" data-src="images/v4.acc.png"/>
+						<img style="height: 200px; margin: auto auto 0 auto; background: transparent;" data-src="images/v4.val_acc.png"/>
+						</div>
+				</section>
+
+
+				<section>
+						<h3>Metric Driven Development (Data Augmentation)</h3>
+						<p>Rather than increasing size of data, try data augmentation technique</p>
+						<pre><code class="bash" data-trim>
+$ git checkout -b data_augmentation 0.3
+						</code></pre>
+						<pre><code class="bash" data-trim data-line-numbers="3-5">
+    training_datagen = ImageDataGenerator(validation_split=validation_rate,
+                                            rescale=1.0/255.,
+                                            shear_range=0.2,
+                                            zoom_range=0.2,
+                                            horizontal_flip=True)
+						</code></pre>
+				</section>
+
+				<section>
+					<h2>Try this @ home</h2>
+					<h5>DVC walkthrough : </h5> <small><a href="https://github.com/midnightradio/handson-dvc">github.com/midnightradio/handson-dvc</a></small>
+					<h5>Slides : </h5> <small><a href="https://midnightradio.github.io/handson-dvc/talk/EP2020">midnightradio.github.io/handson-dvc/talk/EP2020</a></small>
+					<h5>Email : </h5> <small>lee.hongjoo@yandex.com</small>
+				</section>
+
+
+			</div>
+
+		</div>
+
+		<script src="../reveal.js/dist/reveal.js"></script>
+		<script src="../reveal.js/plugin/zoom/zoom.js"></script>
+		<script src="../reveal.js/plugin/notes/notes.js"></script>
+		<script src="../reveal.js/plugin/search/search.js"></script>
+		<script src="../reveal.js/plugin/markdown/markdown.js"></script>
+		<script src="../reveal.js/plugin/highlight/highlight.js"></script>
+		<script>
+
+			// Also available as an ES module, see:
+			// https://revealjs.com/initialization/
+			Reveal.initialize({
+				controls: true,
+				progress: true,
+				center: true,
+				hash: true,
+
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [ RevealZoom, RevealNotes, RevealSearch, RevealMarkdown, RevealHighlight ]
+			});
+
+		</script>
+
+	</body>
+</html>
